@@ -1,0 +1,24 @@
+item_id	category_id	name	notes
+96	1	Mutter M3	NULL
+97	1	Mutter M4	NULL
+98	1	Mutter M5	NULL
+99	1	Mutter M6	NULL
+100	1	Mutter M8	NULL
+101	1	Gewindeschraube 3x20mm	NULL
+102	1	Gewindeschraube 4x8mm	NULL
+103	1	Gewindeschraube 4X10mm	NULL
+104	1	Gewindeschraube 4x12mm	NULL
+105	1	Gewindeschraube 4x15mm	NULL
+106	1	Gewindeschraube 4x18mm	NULL
+107	1	Gewindeschraube 4x25mm	NULL
+108	1	Gewindeschraube 4X30mm	NULL
+109	1	Gewindeschraube 4x40mm	NULL
+110	1	Gewindeschraube 5x20mm	NULL
+111	1	Gewindeschraube 5x25mm	NULL
+112	1	Gewindeschraube 5x30mm	NULL
+113	1	Gewindeschraube 6X20mm	NULL
+114	1	Gewindeschraube 6x25mm	NULL
+115	1	Gewindeschraube 6x30mm	NULL
+116	1	Gewindeschraube 6x40mm	NULL
+117	1	Gewindeschraube 6X50mm	NULL
+118	1	Gewindeschraube 8x15mm	NULL

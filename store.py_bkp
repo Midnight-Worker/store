@@ -1,0 +1,25 @@
+import webview
+import keyboard
+
+def on_closing():
+    # False = nicht schließen (blocken), True = schließen erlauben
+    return False
+
+def enable_devtools(window):
+    webview_window = window.gui  # GTK-Window greifen
+    settings = webview_window.get_settings()
+    settings.set_property("enable-developer-extras", False)
+    webview_window.set_settings(settings)
+
+if __name__ == '__main__':
+    window = webview.create_window(
+        "Kiosk",
+        "http://127.0.0.1:3000",
+        fullscreen=True,
+        frameless=True,
+        easy_drag=False,      # verhindert, dass Wischgesten als Fenster-Drag interpretiert werden
+        confirm_close=True    # zeigt Dialog statt sofort zuzumachen
+    )
+    # optionaler Hard-Block vorm Schließen:
+    window.events.closing += on_closing
+    webview.start(enable_devtools, window, gui='qt')

@@ -1,0 +1,274 @@
+/* ===========================
+   Virtuelle Tastatur – Styling
+   ===========================
+   Klassen aus deinem JS:
+   .vk, .hidden, .vk-top, .vk-title, .vk-btn, .vk-rows, .vk-row,
+   .vk-key, .space, .wide
+*/
+
+/* -------- Farb- & Layout-Variablen -------- */
+:root {
+  --vk-bg: rgba(248, 249, 251, 0.85);
+  --vk-panel: rgba(255, 255, 255, 0.75);
+  --vk-text: #1f2937;
+  --vk-subtle: #6b7280;
+
+  --vk-key-bg: rgba(255, 255, 255, 0.9);
+  --vk-key-border: rgba(17, 24, 39, 0.08);
+  --vk-key-hover: #f3f4f6;
+  --vk-key-active: #e5e7eb;
+
+  --vk-accent: #4f46e5; /* Indigo */
+  --vk-accent-contrast: #ffffff;
+
+  --vk-radius: 14px;
+  --vk-radius-key: 12px;
+  --vk-shadow: 0 10px 30px rgba(17, 24, 39, 0.15);
+  --vk-blur: saturate(1.2) blur(8px);
+
+  --vk-font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+
+  --vk-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --vk-z: 9999;
+
+  --vk-key-h: 52px;
+  --vk-key-gap: 8px;
+  --vk-side-pad: 12px;
+  --vk-top-h: 48px;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vk-bg: rgba(16, 18, 22, 0.65);
+    --vk-panel: rgba(22, 24, 28, 0.65);
+    --vk-text: #e5e7eb;
+    --vk-subtle: #9ca3af;
+
+    --vk-key-bg: rgba(32, 35, 42, 0.9);
+    --vk-key-border: rgba(255, 255, 255, 0.06);
+    --vk-key-hover: #2b2f36;
+    --vk-key-active: #23272e;
+
+    --vk-accent: #8b5cf6; /* Violet */
+  }
+}
+
+/* High Contrast (Windows, etc.) */
+@media (forced-colors: active) {
+  :root {
+    --vk-key-border: CanvasText;
+  }
+}
+
+/* -------- Container -------- */
+.vk {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  z-index: var(--vk-z);
+  font-family: var(--vk-font);
+  color: var(--vk-text);
+
+  backdrop-filter: var(--vk-blur);
+  -webkit-backdrop-filter: var(--vk-blur);
+
+  padding: 8px max(8px, 3vw) calc(10px + var(--vk-safe-bottom));
+  background: linear-gradient(to top, var(--vk-bg) 70%, transparent);
+  transition: transform 180ms ease, opacity 180ms ease, visibility 180ms ease;
+}
+
+/* hübsches Ein-/Ausblenden */
+.vk.hidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  pointer-events: none;
+}
+
+/* Panel */
+.vk > .vk-top,
+.vk > .vk-rows {
+  width: min(920px, 100%);
+  margin: 0 auto;
+}
+
+/* -------- Kopfzeile -------- */
+.vk-top {
+  height: var(--vk-top-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: var(--vk-panel);
+  border: 1px solid var(--vk-key-border);
+  border-bottom: 0;
+  border-radius: var(--vk-radius) var(--vk-radius) 0 0;
+  padding: 0 var(--vk-side-pad);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+
+.vk-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: .2px;
+  color: var(--vk-subtle);
+}
+
+.vk-btn {
+  appearance: none;
+  border: 1px solid var(--vk-key-border);
+  background: var(--vk-key-bg);
+  color: var(--vk-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  margin-left: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 120ms ease, background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+}
+
+.vk-btn:hover { background: var(--vk-key-hover); }
+.vk-btn:active { transform: translateY(1px); background: var(--vk-key-active); }
+.vk-btn:focus-visible {
+  outline: 2px solid var(--vk-accent);
+  outline-offset: 2px;
+}
+
+/* Shift-Button als Accent, wenn aktiv (wird via JS nicht getoggelt – optional Klasse setzen) */
+.vk-btn.is-active {
+  background: var(--vk-accent);
+  color: var(--vk-accent-contrast);
+  border-color: transparent;
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+}
+
+/* -------- Tastenraster -------- */
+.vk-rows {
+  background: var(--vk-panel);
+  border: 1px solid var(--vk-key-border);
+  border-top: 0;
+  border-radius: 0 0 var(--vk-radius) var(--vk-radius);
+  padding: 12px;
+  box-shadow: var(--vk-shadow);
+}
+
+/* Jede Zeile verwendet ein flex-wrap Grid */
+.vk-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  grid-column-gap: var(--vk-key-gap);
+  margin-bottom: var(--vk-key-gap);
+}
+
+.vk-row:last-child { margin-bottom: 0; }
+
+/* -------- Tasten -------- */
+.vk-key {
+  height: var(--vk-key-h);
+  min-width: 0;
+  border-radius: var(--vk-radius-key);
+  border: 1px solid var(--vk-key-border);
+  background: var(--vk-key-bg);
+  color: var(--vk-text);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: .3px;
+
+  padding: 0 12px;
+  cursor: pointer;
+  user-select: none;
+
+  transition: transform 70ms ease, background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+  box-shadow:
+    0 1px 0 rgba(17, 24, 39, 0.06),
+    inset 0 -2px 0 rgba(17, 24, 39, 0.04);
+}
+
+.vk-key:hover { background: var(--vk-key-hover); }
+.vk-key:active {
+  transform: translateY(1px);
+  background: var(--vk-key-active);
+  box-shadow: inset 0 2px 0 rgba(17,24,39,0.08);
+}
+
+.vk-key:focus-visible {
+  outline: 2px solid var(--vk-accent);
+  outline-offset: 2px;
+}
+
+/* Sonderbreiten (deine JS setzt .space / .wide) */
+.vk-key.wide   { grid-column: span 1; min-width: 88px; }
+.vk-key.space  { grid-column: span 2; min-width: 160px; }
+
+/* Optional: für sehr schmale Displays die Sondertasten nicht zu breit machen */
+@media (max-width: 420px) {
+  .vk-key.wide  { min-width: 72px; }
+  .vk-key.space { min-width: 120px; }
+}
+
+/* Typografie-Tuning je nach Taste (Pfeil, Enter etc.) */
+.vk-key[data-key="⏎"],
+.vk-key[data-key="←"],
+.vk-key[data-key="⇧"],
+.vk-key[data-key="⎋"] {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.98rem;
+}
+
+/* Accent-Schimmer beim Hovern auf Sondertasten */
+.vk-key[data-key="⏎"]:hover,
+.vk-key[data-key="⇧"]:hover {
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.25);
+}
+
+/* “Gedrückt”-Look bei aktivem Shift (wenn du per JS .is-active setzt) */
+.vk-key[data-key="⇧"].is-active {
+  background: var(--vk-accent);
+  color: var(--vk-accent-contrast);
+  border-color: transparent;
+}
+
+/* -------- Kompaktes Layout (optional) --------
+   Füge .vk--compact zur .vk hinzu, falls du alles dichter willst.
+*/
+.vk.vk--compact {
+  --vk-key-h: 44px;
+  --vk-key-gap: 6px;
+  --vk-top-h: 44px;
+  --vk-radius: 12px;
+  --vk-radius-key: 10px;
+}
+
+/* -------- Barrierefreiheit / Motion -------- */
+@media (prefers-reduced-motion: reduce) {
+  .vk, .vk * {
+    transition: none !important;
+  }
+}
+
+/* -------- Optional: “undockte” Variante --------
+   Wenn du die Tastatur als schwebendes Panel willst, nimm .vk--floating
+*/
+.vk.vk--floating {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  bottom: calc(16px + var(--vk-safe-bottom));
+  width: min(920px, calc(100% - 24px));
+  border-radius: var(--vk-radius);
+  background: var(--vk-bg);
+}
+.vk.vk--floating.hidden { transform: translate(-50%, 12px); }
+
+h1{color:red;}

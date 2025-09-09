@@ -4,7 +4,7 @@ import re
 import serial
 import webview
 
-PORT = "/dev/ttyUSB1"
+PORT = "/dev/ttyUSB1"   # anpassen
 BAUDRATE = 115200
 
 UID_USER  = "37:4A:B6:3B".upper()
@@ -17,12 +17,12 @@ URL_ADMIN = f"{BASE}/admin"
 window = None
 stop_flag = False
 
+# --- Hilfen ---
 def on_closing():
     return False
 
-import re
-UID_RE = re.compile(r'^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){3,}$')
-EAN_RE = re.compile(r'^\d{6,20}$')
+UID_RE = re.compile(r'^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){3,}$')  # z.B. AA:BB:CC:DD oder länger
+EAN_RE = re.compile(r'^\d{6,20}$')  # einfache Barcode-Heuristik (EAN-8/13, QR-Zahlen, SKU-Zahlen etc.)
 
 def extract_uid(line: str):
     line = line.strip()
@@ -35,12 +35,15 @@ def extract_uid(line: str):
 
 def extract_barcode(line: str):
     s = line.strip()
+    # Optional: viele Scanner schicken Prefix/Suffix. Hier ein paar Beispiele:
     s = s.removeprefix("BC:").removeprefix("BARCODE:").strip()
+    # Erlaube reine Ziffern (häufigster Fall). Willst du Alphanumerik, passe Regex an.
     if EAN_RE.match(s):
         return s
     return None
 
 def go_role(role: str, next_url: str):
+    # Cookie serverseitig setzen + redirect auf next
     role = role.lower()
     url = f"{BASE}/auth/set-role?role={role}&next={next_url}"
     window.load_url(url)
@@ -59,6 +62,7 @@ def handle_uid(uid: str):
 
 def handle_barcode(code: str):
     print("BARCODE:", code)
+    # Beliebige Normalisierung möglich (z.B. führende 0 trimmen o.ä.)
     window.load_url(f"{BASE}/item/{code}")
 
 def serial_worker():
@@ -70,62 +74,63 @@ def serial_worker():
                 raw = ser.readline().decode(errors="ignore").strip()
                 if not raw:
                     continue
+
+                # 1) UID?
                 uid = extract_uid(raw)
                 if uid:
-                    handle_uid(uid); continue
+                    handle_uid(uid)
+                    continue
+
+                # 2) Barcode?
                 barcode = extract_barcode(raw)
                 if barcode:
-                    handle_barcode(barcode); continue
+                    handle_barcode(barcode)
+                    continue
+
+                # Sonst: ignorieren/loggen
+                # print("IGN:", raw)
+
     except serial.SerialException as e:
         print("[Serial] Fehler:", e)
 
-def on_ready():
-    print("huhu")
+
+def force_fullscreen():
+    # 1) PyWebView-API
     try:
-        # Qt nativ maximieren
-        if hasattr(window, 'gui') and window.gui:
-            window.gui.showMaximized()
+        window.toggle_fullscreen()  # setzt/entfernt Fullscreen
+        # Falls du sicher "an" willst und du pywebview >= 4.3 hast:
+        # window.set_fullscreen(True)
     except Exception:
         pass
 
-def fill_available_screen():
+    # 2) Fallback: Qt nativ (nur bei gui='qt')
     try:
         if hasattr(window, 'gui') and window.gui:
-            screen = window.gui.screen()
-            geo = screen.availableGeometry()   # QRect
-            window.gui.setGeometry(geo)        # Position + Größe in einem Rutsch
+            window.gui.showFullScreen()
     except Exception:
         pass
 
-def resize_and_move():
-    try:
-        window.resize(1920, 1080)
-        window.move(0, 0)
-    except Exception:
-        pass
 
 
 def start_app():
     global window, stop_flag
     window = webview.create_window(
         "Kiosk",
-        URL_USER,
+        URL_USER,  # default
         fullscreen=True,
         frameless=True,
         easy_drag=False,
         confirm_close=True
     )
     window.events.closing += on_closing
-    window.events.shown += on_ready   # Backup-Haken nach dem Anzeigen
-    window.events.shown += fill_available_screen
-    window.events.shown += resize_and_move
+
+    # WICHTIG: erst wenn das Fenster "gezeigt" wurde, Fullscreen erzwingen
+    window.events.shown += force_fullscreen
 
     t = threading.Thread(target=serial_worker, daemon=True)
     t.start()
-
     try:
-        # on_ready wird im UI-Thread aufgerufen – hier Fullscreen erzwingen
-        webview.start(on_ready, window, gui='qt')
+        webview.start(gui='qt')
     finally:
         stop_flag = True
 

@@ -1,0 +1,99 @@
+import threading
+import serial
+import webview
+
+# === Serial-Setup anpassen ===
+PORT = "/dev/ttyUSB1"   # <- deinen Port hier eintragen
+BAUDRATE = 115200
+
+# === Deine UIDs ===
+UID_USER  = "37:4A:B6:3B"
+UID_ADMIN = "B3:5C:BD:AB"
+
+# === Ziel-URLs ===
+URL_USER  = "http://127.0.0.1:3000/"
+URL_ADMIN = "http://127.0.0.1:3000/admin"
+
+window = None
+stop_flag = False  # wird bei Schließen gesetzt
+
+def on_closing():
+    # Kiosk nicht einfach schließen lassen (Dialog erscheint durch confirm_close=True)
+    return False
+
+def enable_devtools(win):
+    # Optional: Devtools/F12 deaktivieren (unter Qt u.U. ohne Effekt, schadet aber nicht)
+    try:
+        webview_window = win.gui
+        settings = webview_window.get_settings()
+        settings.set_property("enable-developer-extras", False)
+        webview_window.set_settings(settings)
+    except Exception:
+        pass
+
+def extract_uid(line: str) -> str | None:
+    line = line.strip()
+    # Erwartetes Arduino-Format: "UID: XX:YY:ZZ:AA | DEC: ..."
+    if line.startswith("UID:"):
+        uid_part = line.split("|")[0]  # "UID: XX:YY:ZZ:AA "
+        return uid_part.replace("UID:", "").strip()
+    # Falls du irgendwann nur "XX:YY:ZZ:AA" sendest:
+    if ":" in line and all(ch in "0123456789ABCDEFabcdef:" for ch in line):
+        return line.upper()
+    return None
+
+def handle_uid(uid: str):
+    # Wichtig: Alles in Großbuchstaben vergleichen
+    u = uid.upper()
+    print("RFID UID:", u)
+    if u == UID_USER:
+        print("→ User-Seite")
+        window.load_url(URL_USER)
+    elif u == UID_ADMIN:
+        print("→ Admin-Seite")
+        window.load_url(URL_ADMIN)
+    else:
+        print("→ Unbekannte UID, keine Navigation")
+
+def serial_worker():
+    global stop_flag
+    try:
+        with serial.Serial(PORT, BAUDRATE, timeout=1) as ser:
+            print(f"[Serial] Listening on {PORT} @ {BAUDRATE} ...")
+            while not stop_flag:
+                line = ser.readline().decode(errors="ignore").strip()
+                if not line:
+                    continue
+                uid = extract_uid(line)
+                if uid:
+                    handle_uid(uid)
+    except serial.SerialException as e:
+        # Port nicht gefunden / getrennt etc.
+        print("[Serial] Fehler:", e)
+
+def start_app():
+    global window, stop_flag
+
+    window = webview.create_window(
+        "Kiosk",
+        URL_USER,            # Start im User-Modus
+        fullscreen=True,
+        frameless=True,
+        easy_drag=False,
+        confirm_close=True
+    )
+    window.events.closing += on_closing
+
+    # Serial-Thread starten (daemon, damit Prozess sauber endet)
+    t = threading.Thread(target=serial_worker, daemon=True)
+    t.start()
+
+    try:
+        webview.start(enable_devtools, window, gui='qt')
+    finally:
+        # Beim Beenden flaggen, damit Thread endet
+        stop_flag = True
+
+if __name__ == '__main__':
+    start_app()
+

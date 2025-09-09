@@ -1,19 +1,20 @@
-// index.js
+// server.js
 const express = require('express');
-const path = require('path');
+const cookieParser = require('cookie-parser');
+const auth = require('./auth');
 
 const app = express();
-const PORT = 3000;
+app.use(cookieParser());
+app.use('/auth', auth);
 
-// Statische Dateien (CSS, JS, Bilder …) aus "public" bereitstellen
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Index-Seite ausliefern
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Beispiel: Gatekeeping per Cookie
+app.get('/admin', (req, res, next) => {
+  if (req.cookies.role !== 'admin') return res.redirect('/');
+  next();
 });
 
-app.listen(PORT, () => {
-  console.log(`Server läuft auf http://localhost:${PORT}`);
-});
+// … deine statischen Dateien / SPA
+app.use(express.static('public')); // z. B. public/index.html
+
+app.listen(3000, () => console.log('http://127.0.0.1:3000'));
 

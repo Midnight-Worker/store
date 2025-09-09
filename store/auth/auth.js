@@ -20,4 +20,3 @@ router.get('/set-role', (req, res) => {
 });
 
 module.exports = router;
-

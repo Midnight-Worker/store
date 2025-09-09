@@ -99,7 +99,7 @@ def fill_available_screen():
 
 def resize_and_move():
     try:
-        window.resize(1920, 1080)
+        window.resize(1080, 800)
         window.move(0, 0)
     except Exception:
         pass

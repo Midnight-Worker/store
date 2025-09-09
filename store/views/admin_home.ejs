@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Admin-Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/keyboard.css" type="media, screen">
+  <link rel="stylesheet" href="css/main.css" type="text/css" media="screen">
+  <!-- Bootstrap CSS -->
+  <link href="libs/bootstrap-4.6.2/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body data-role="admin">
+  <header class="topbar">
+    <h1>Admin-Startseite</h1>
+    <nav>
+      <a href="/" class="muted">Benutzer</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="kpis">
+      <div class="kpi"><div class="muted">Artikel</div><div class="num"><%= kpis ? kpis.items : '–' %></div></div>
+      <div class="kpi"><div class="muted">Standorte</div><div class="num"><%= kpis ? kpis.locations : '–' %></div></div>
+      <div class="kpi"><div class="muted">Lager-Positionen</div><div class="num"><%= kpis ? kpis.stock_positions : '–' %></div></div>
+      <div class="kpi"><div class="muted">Out of Stock</div><div class="num"><%= kpis ? kpis.out_of_stock : '–' %></div></div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>Barcode scannen oder Code eingeben</h2>
+      <p class="muted">Beim Scan springt die Ansicht automatisch zur Artikelseite.</p>
+      <div class="grid">
+        <div>
+          <input id="manual" type="text" placeholder="z. B. 12345 oder item/12345" autofocus />
+        </div>
+        <div>
+          <button id="goBtn">Öffnen</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h3>Schnellzugriff</h3>
+      <div class="grid">
+        <a class="card" href="/admin/item/1001">Artikel 1001</a>
+        <a class="card" href="/admin/item/M4x12">M4×12</a>
+        <a class="card" href="/admin/item/Gewindestange-M8">Gewindestange M8</a>
+      </div>
+    </section>
+  </main>
+  <script src="libs/jquery.js"></script>
+  <script src="libs/bootstrap-4.6.2/js/bootstrap.bundle.min.js"></script>
+  <script src="js/keyboard.js" defer></script>
+  <script src="js/main.js"></script>
+
+</body>
+</html>
+

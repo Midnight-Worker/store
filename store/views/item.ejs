@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title><%= role === 'admin' ? 'Admin' : 'Kiosk' %> – <%= code %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body data-role="<%= role %>">
+  <header class="topbar">
+    <h1><%= role === 'admin' ? 'Admin' : 'Benutzer' %> – <span id="titleCode"><%= code %></span></h1>
+    <a href="<%= role==='admin' ? '/admin' : '/' %>">Home</a>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2 id="itemName">Lade …</h2>
+      <p class="muted" id="itemNotes"></p>
+      <div class="grid">
+        <div><strong>Kategorie:</strong> <span id="catName">–</span></div>
+        <div><strong>Typ:</strong> <span id="type">–</span></div>
+      </div>
+
+      <div id="typeBlock" class="mt">
+        <!-- Typdetails werden gefüllt -->
+      </div>
+
+      <h3 class="mt">Bestand je Standort</h3>
+      <table id="stockTbl">
+        <thead><tr><th>Standort</th><th>Menge</th><th>Einheit</th></tr></thead>
+        <tbody></tbody>
+      </table>
+
+      <% if (role === 'admin') { %>
+      <hr />
+      <div class="admin-actions">
+        <label>Bestand ändern:</label>
+        <select id="locSelect"></select>
+        <input id="qtyInput" type="number" step="0.001" />
+        <button id="btnSaveStock">Speichern</button>
+      </div>
+      <% } %>
+    </section>
+  </main>
+
+  <!-- Barcode-Keyboard-Wedge -->
+  <script>
+  (() => {
+    const role = document.body.dataset.role;
+    let buf='', t=null, MIN=3, IDLE=80, allowInInputs=false;
+    function reset(){ buf=''; if(t){clearTimeout(t); t=null;} }
+    function inInput(){
+      const el=document.activeElement;
+      return el && (el.isContentEditable || el.tagName==='INPUT' || el.tagName==='TEXTAREA');
+    }
+    function finalize(){
+      const code=buf.trim(); reset();
+      if(code.length<MIN) return;
+      const base = role==='admin' ? '/admin' : '';
+      const path = code.includes('/') ? code : `item/${code}`;
+      location.href = `${base}/${path}`.replace(/\/+/g,'/');
+    }
+    window.addEventListener('keydown', (e)=>{
+      if(!allowInInputs && inInput()) return;
+      if(e.key==='Enter'){ e.preventDefault(); finalize(); return; }
+      if(e.key==='Escape'){ reset(); return; }
+      if(e.key.length===1 && !e.ctrlKey && !e.altKey && !e.metaKey){
+        buf+=e.key; if(t) clearTimeout(t); t=setTimeout(finalize, IDLE);
+      }
+    }, {capture:true});
+  })();
+  </script>
+
+  <script>
+    async function loadItem(code){
+      const res = await fetch(`/api/item/${encodeURIComponent(code)}`);
+      if(!res.ok){ document.getElementById('itemName').textContent='Nicht gefunden'; return; }
+      const it = await res.json();
+
+      document.getElementById('itemName').textContent = it.name;
+      document.getElementById('itemNotes').textContent = it.notes || '';
+      document.getElementById('catName').textContent = it.category_name;
+      document.getElementById('type').textContent = it.type;
+
+      const tb = document.getElementById('typeBlock');
+      tb.innerHTML = '';
+      if(it.type==='screw' && it.screw){
+        tb.innerHTML = `
+          <div class="grid">
+            <div><strong>Durchmesser:</strong> ${it.screw.diameter}</div>
+            <div><strong>Länge:</strong> ${it.screw.length_mm} mm</div>
+            <div><strong>Kopf:</strong> ${it.screw.head_type}</div>
+            <div><strong>Antrieb:</strong> ${it.screw.drive || '–'}</div>
+          </div>`;
+      } else if (it.type==='rod' && it.rod){
+        tb.innerHTML = `
+          <div class="grid">
+            <div><strong>Durchmesser:</strong> ${it.rod.diameter}</div>
+            <div><strong>Länge:</strong> ${it.rod.length_mm} mm</div>
+            <div><strong>Material:</strong> ${it.rod.material || '–'}</div>
+            <div><strong>Oberfläche:</strong> ${it.rod.finish || '–'}</div>
+          </div>`;
+      }
+
+      const tbody = document.querySelector('#stockTbl tbody');
+      tbody.innerHTML = '';
+      (it.stock||[]).forEach(s=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td>${s.location_code}</td><td>${s.quantity}</td><td>${s.unit}</td>`;
+        tbody.appendChild(tr);
+      });
+
+      if(document.body.dataset.role==='admin'){
+        const sel = document.getElementById('locSelect');
+        sel.innerHTML = '';
+        (it.stock||[]).forEach(s=>{
+          const opt=document.createElement('option');
+          opt.value = s.location_id;
+          opt.textContent = `${s.location_code} (${s.quantity} ${s.unit})`;
+          sel.appendChild(opt);
+        });
+        document.getElementById('btnSaveStock').onclick = async ()=>{
+          const locId = sel.value;
+          const qty = parseFloat(document.getElementById('qtyInput').value);
+          if(isNaN(qty)) return alert('Menge fehlt');
+          const res = await fetch(`/api/item/${encodeURIComponent(code)}/stock`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ location_id: Number(locId), quantity: qty })
+          });
+          if(!res.ok) return alert('Fehler beim Speichern');
+          await loadItem(code); // refresh
+        };
+      }
+    }
+
+    const code = "<%= code %>";
+    loadItem(code);
+  </script>
+</body>
+</html>
+

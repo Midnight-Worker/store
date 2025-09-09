@@ -8,10 +8,31 @@
   <!-- Bootstrap CSS -->
   <link href="libs/bootstrap-4.6.2/css/bootstrap.min.css" rel="stylesheet" />
 
-</head>
-<body>
-  <h1>hallo welt</h1>
-  <input type="text"/>
+<body data-role="<%= role %>">
+  <header class="topbar">
+    <h1><%= role === 'admin' ? 'Admin-Modus' : 'Benutzer-Modus' %></h1>
+    <% if (code) { %><div class="code">Code: <span id="code"><%= code %></span></div><% } %>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2 id="item-name">–</h2>
+      <p id="item-desc" class="muted">Lade Details …</p>
+      <div class="grid">
+        <div><strong>Preis:</strong> <span id="item-price">–</span></div>
+        <div><strong>Bestand:</strong> <span id="item-stock">–</span></div>
+        <div><strong>Zuletzt aktualisiert:</strong> <span id="item-updated">–</span></div>
+      </div>
+
+      <% if (role === 'admin') { %>
+      <hr />
+      <div class="admin-actions">
+        <button id="btn-edit">Bearbeiten</button>
+        <button id="btn-reprice">Preis ändern</button>
+      </div>
+      <% } %>
+    </section>
+  </main>
 
   <script src="libs/jquery.js"></script>
   <script src="libs/bootstrap-4.6.2/js/bootstrap.bundle.min.js"></script>

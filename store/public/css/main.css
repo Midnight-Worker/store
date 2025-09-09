@@ -275,3 +275,22 @@ html {
 .vk.vk--floating.hidden { transform: translate(-50%, 12px); }
 
 h1{color:red;}
+
+
+   .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+    .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
+    .muted { color: #6b7280; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .kpis { display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); }
+    .kpi { padding:12px; border-radius:12px; background:#f9fafb; border:1px solid #e5e7eb; }
+    .kpi .num { font-size: 1.6rem; font-weight: 700; }
+    input[type="text"] { width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px; font-size:1rem; }
+    button { padding:10px 14px; border:1px solid #d1d5db; border-radius:10px; background:#f3f4f6; cursor:pointer; }
+    button:hover { background:#e5e7eb; }
+    @media (prefers-color-scheme: dark) {
+      body { background:#0b0e12; color:#e5e7eb; }
+      .card, .kpi { background:#12161c; border-color:#1f2937; }
+      input, button { background:#0f141b; color:#e5e7eb; border-color:#253042; }
+      .muted { color:#9ca3af; }
+    }

@@ -19,6 +19,7 @@
 --
 -- Table structure for table `categories`
 --
+use b7store;
 
 DROP TABLE IF EXISTS `categories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

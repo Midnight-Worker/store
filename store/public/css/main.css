@@ -5,6 +5,9 @@
    .vk, .hidden, .vk-top, .vk-title, .vk-btn, .vk-rows, .vk-row,
    .vk-key, .space, .wide
 */
+html {
+    zoom: 150%;
+}
 
 /* -------- Farb- & Layout-Variablen -------- */
 :root {
